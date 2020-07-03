@@ -1,0 +1,42 @@
+{
+  "name": "http-crawler",
+  "version": "0.1.1",
+  "description": "one http crawler engine",
+  "main": "dist/http-crawler.cjs.js",
+  "module": "dist/http-crawler.ems.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "cove": "jest && start ./coverage/lcov-report/index.html",
+    "build": "rollup -c",
+    "start": "rollup -c -w",
+    "build:types": "tsc --declaration --declarationMap -p ./ -t es2015 --emitDeclarationOnly --outDir types"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^13.0.0",
+    "@rollup/plugin-node-resolve": "^8.1.0",
+    "@rollup/plugin-typescript": "^5.0.0",
+    "@types/axios": "^0.14.0",
+    "@types/jest": "^26.0.0",
+    "@types/jsonpath": "^0.2.0",
+    "@types/node": "^14.0.14",
+    "@types/qs": "^6.9.3",
+    "jest": "^26.0.1",
+    "rollup": "^2.18.0",
+    "rollup-plugin-sourcemaps": "^0.6.2",
+    "ts-jest": "^26.1.1",
+    "ts-node": "^8.10.2",
+    "tsconfig-paths": "^3.9.0",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.5"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "jsonpath": "^1.0.2",
+    "node-html-parser": "^1.2.20",
+    "qs": "^6.9.4"
+  }
+}
