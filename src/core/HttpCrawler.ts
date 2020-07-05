@@ -5,7 +5,7 @@ import { Meta } from "./Meta";
 import { Option } from "./Option";
 import { Step, Request, DataType, MethodType } from "./Step";
 import { deepEach, sleep, isArray, isObject } from "@app/utils"
-import { apply } from 'jsonpath';
+import jp from 'jsonpath';
 import { stringify } from 'qs';
 import { Event, EventList } from './Event';
 
@@ -172,14 +172,14 @@ export class HttpCrawler {
       const _t = deepEach(t);
       for (let i = 0; i < t._v.length; i++) {
         const cur = t._v[i];
-        apply(_t, cur, (value: any[]) => {
+        jp.apply(_t, cur, (value: any[]) => {
           if (!isArray(value)) {
             return value;
           }
           return value[0];
         });
         
-        apply(t, cur, (value: any[]) => {
+        jp.apply(t, cur, (value: any[]) => {
           if(!isArray(value)){
             t._v.splice(i, 1);
             return value;

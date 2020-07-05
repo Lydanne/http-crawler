@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var Axios = _interopDefault(require('axios'));
-var jsonpath = require('jsonpath');
+var jp = _interopDefault(require('jsonpath'));
 var nodeHtmlParser = require('node-html-parser');
 var qs = require('qs');
 
@@ -128,63 +128,63 @@ class Directive {
      * @param key JSON查询字符串
      */
     ['v-refer'](refer, key) {
-        return jsonpath.query(refer, key);
+        return jp.query(refer, key);
     }
     /**
      * 根据key返回状态的值
      * @param key JSON查询字符串
      */
     ['v-state'](refer, key) {
-        return jsonpath.query(refer.state, key);
+        return jp.query(refer.state, key);
     }
     /**
      * 根据key返回状态的值
      * @param key JSON查询字符串
      */
     ['v-meta'](refer, key) {
-        return jsonpath.query(refer.meta, key);
+        return jp.query(refer.meta, key);
     }
     /**
      * 查询上一个step的对象
      * @param key JSON查询字符串
      */
     ['v-prev'](refer, key) {
-        return jsonpath.query(refer.steps[refer.state.current - 1], key);
+        return jp.query(refer.steps[refer.state.current - 1], key);
     }
     /**
      * 查询上一个step的对象的mergeResults
      * @param key JSON查询字符串
      */
     ['v-prev-mres'](refer, key) {
-        return jsonpath.query(refer.steps[refer.state.current - 1].mergeResults, key);
+        return jp.query(refer.steps[refer.state.current - 1].mergeResults, key);
     }
     /**
      * 查询上一个step的对象的results
      * @param key JSON查询字符串
      */
     ['v-prev-res'](refer, key) {
-        return jsonpath.query(refer.steps[refer.state.current - 1].results, key);
+        return jp.query(refer.steps[refer.state.current - 1].results, key);
     }
     /**
      * 查询上一个step的对象的response
      * @param key JSON查询字符串
      */
     ['v-prev-responses'](refer, key) {
-        return jsonpath.query(refer.steps[refer.state.current - 1].responses, key);
+        return jp.query(refer.steps[refer.state.current - 1].responses, key);
     }
     /**
      * 查询当前step的对象
      * @param key JSON查询字符串
      */
     ['v-current'](refer, key) {
-        return jsonpath.query(refer.steps[refer.state.current], key);
+        return jp.query(refer.steps[refer.state.current], key);
     }
     /**
      * 获取当前的response
      * @param key JSON查询字符串
      */
     ['v-response'](refer, key) {
-        return jsonpath.query(refer.response, key);
+        return jp.query(refer.response, key);
     }
     /**
      * 获取当前的response
@@ -194,7 +194,7 @@ class Directive {
         const [htmlSelector, jsonSelector] = key.split('|');
         const dom = nodeHtmlParser.parse(refer.response.data);
         const result = dom.querySelectorAll(htmlSelector);
-        return jsonpath.query(result, jsonSelector);
+        return jp.query(result, jsonSelector);
     }
 }
 
@@ -422,13 +422,13 @@ class HttpCrawler {
             const _t = deepEach(t);
             for (let i = 0; i < t._v.length; i++) {
                 const cur = t._v[i];
-                jsonpath.apply(_t, cur, (value) => {
+                jp.apply(_t, cur, (value) => {
                     if (!isArray(value)) {
                         return value;
                     }
                     return value[0];
                 });
-                jsonpath.apply(t, cur, (value) => {
+                jp.apply(t, cur, (value) => {
                     if (!isArray(value)) {
                         t._v.splice(i, 1);
                         return value;

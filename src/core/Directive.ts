@@ -1,5 +1,5 @@
 import { deepEach } from "@app/utils";
-import { query, apply } from "jsonpath";
+import jp from "jsonpath";
 import { parse } from "node-html-parser";
 import { HttpCrawler } from "./HttpCrawler";
 
@@ -101,7 +101,7 @@ export class Directive {
    * @param key JSON查询字符串
    */
   ['v-refer'] (refer:any, key: string): any {
-    return query(refer, key);
+    return jp.query(refer, key);
   }
 
   /**
@@ -109,7 +109,7 @@ export class Directive {
    * @param key JSON查询字符串
    */
   ['v-state'] (refer: any, key: string): any {
-    return query(refer.state, key);
+    return jp.query(refer.state, key);
   }
 
   /**
@@ -117,14 +117,14 @@ export class Directive {
    * @param key JSON查询字符串
    */
   ['v-meta'] (refer: any, key: string): any {
-    return query(refer.meta, key);
+    return jp.query(refer.meta, key);
   }
   /**
    * 查询上一个step的对象
    * @param key JSON查询字符串
    */
   ['v-prev'] (refer: any, key: string): any {
-    return query(refer.steps[refer.state.current-1], key);
+    return jp.query(refer.steps[refer.state.current-1], key);
   }
 
   /**
@@ -132,7 +132,7 @@ export class Directive {
    * @param key JSON查询字符串
    */
   ['v-prev-mres'] (refer: any, key: string): any {
-    return query(refer.steps[refer.state.current-1].mergeResults, key);
+    return jp.query(refer.steps[refer.state.current-1].mergeResults, key);
   }
 
   /**
@@ -140,7 +140,7 @@ export class Directive {
    * @param key JSON查询字符串
    */
   ['v-prev-res'] (refer: any, key: string): any {
-    return query(refer.steps[refer.state.current-1].results, key);
+    return jp.query(refer.steps[refer.state.current-1].results, key);
   }
 
   /**
@@ -148,7 +148,7 @@ export class Directive {
    * @param key JSON查询字符串
    */
   ['v-prev-responses'] (refer: any, key: string): any {
-    return query(refer.steps[refer.state.current-1].responses, key);
+    return jp.query(refer.steps[refer.state.current-1].responses, key);
   }
 
   /**
@@ -156,7 +156,7 @@ export class Directive {
    * @param key JSON查询字符串
    */
   ['v-current'] (refer:any,key: string): any {
-    return query(refer.steps[refer.state.current], key);
+    return jp.query(refer.steps[refer.state.current], key);
   }
 
   /**
@@ -164,7 +164,7 @@ export class Directive {
    * @param key JSON查询字符串
    */
   ['v-response'] (refer:any,key: string): any {
-    return query(refer.response, key);
+    return jp.query(refer.response, key);
   }
 
   /**
@@ -176,7 +176,7 @@ export class Directive {
     const [htmlSelector,jsonSelector] = key.split('|');
     const dom = parse(refer.response.data);
     const result = dom.querySelectorAll(htmlSelector);
-    return query(result, jsonSelector);
+    return jp.query(result, jsonSelector);
   }
 
   [key: string]: FunctionHanler | any;
