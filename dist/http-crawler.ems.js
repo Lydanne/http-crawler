@@ -274,7 +274,9 @@ class Event {
         this.callbacks[event].push(callback);
     }
     emit(event, ...args) {
-        this.callbacks[event].forEach(callback => callback(...args));
+        if (this.callbacks[event]) {
+            this.callbacks[event].forEach(callback => callback(...args));
+        }
     }
 }
 

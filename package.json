@@ -1,6 +1,6 @@
 {
   "name": "http-crawler",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "one http crawler engine",
   "main": "dist/http-crawler.cjs.js",
   "module": "dist/http-crawler.ems.js",
@@ -12,8 +12,12 @@
     "start": "rollup -c -w",
     "build:types": "tsc --declaration --declarationMap -p ./ -t es2015 --emitDeclarationOnly --outDir types"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "hhtp",
+    "auto",
+    "crawler"
+  ],
+  "author": "WumaCoder 1829913225@qq.com",
   "license": "ISC",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^13.0.0",

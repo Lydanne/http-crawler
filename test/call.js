@@ -77,25 +77,25 @@ const okzyw = new HttpCrawler(
     ]
   });
 
-okzyw.on('start',()=>{
-  console.log('开始');
-})
+// okzyw.on('start',()=>{
+//   console.log('开始');
+// })
 
-okzyw.on('end',()=>{
-  console.log('结束');
-})
+// okzyw.on('end',()=>{
+//   console.log('结束');
+// })
 
-okzyw.on('err',(error)=>{
-  console.log(error);
-})
+// okzyw.on('err',(error)=>{
+//   console.log(error);
+// })
 
-okzyw.on('go:before',({ state })=>{
-  console.log('开始第'+(state.current)+'步');
-})
+// okzyw.on('go:before',({ state })=>{
+//   console.log('开始第'+(state.current)+'步');
+// })
 
-okzyw.on('go:after',({state})=>{
-  console.log('完成第'+(state.current)+'步');
-})
+// okzyw.on('go:after',({state})=>{
+//   console.log('完成第'+(state.current)+'步');
+// })
 
 async function main(params) {
   // const res1 = await clicli.go();
