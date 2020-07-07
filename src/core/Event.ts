@@ -4,6 +4,8 @@ export enum EventList{
   GO_AFTER = 'go:after', // 运行go之后
   END = 'end', //结束
   ERR = 'err', //出现错误
+  REQUEST = 'request',
+  RESPONSE = 'response'
 }
 
 interface EventHandler {

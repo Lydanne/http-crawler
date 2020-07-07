@@ -1,6 +1,6 @@
 {
   "name": "http-crawler",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "one http crawler engine",
   "main": "dist/http-crawler.cjs.js",
   "module": "dist/http-crawler.ems.js",
@@ -15,7 +15,9 @@
   "keywords": [
     "hhtp",
     "auto",
-    "crawler"
+    "crawler",
+    "jsonpath",
+    "jsdom"
   ],
   "author": "WumaCoder 1829913225@qq.com",
   "license": "ISC",
@@ -25,7 +27,6 @@
     "@rollup/plugin-typescript": "^5.0.0",
     "@types/axios": "^0.14.0",
     "@types/jest": "^26.0.0",
-    "@types/jsonpath": "^0.2.0",
     "@types/node": "^14.0.14",
     "@types/qs": "^6.9.3",
     "jest": "^26.0.1",
@@ -38,8 +39,9 @@
     "typescript": "^3.9.5"
   },
   "dependencies": {
+    "@types/jmespath": "^0.15.0",
     "axios": "^0.19.2",
-    "jsonpath": "^1.0.2",
+    "jmespath": "^0.15.0",
     "node-html-parser": "^1.2.20",
     "qs": "^6.9.4"
   }

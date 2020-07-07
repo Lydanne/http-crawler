@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var Axios = _interopDefault(require('axios'));
-var jp = _interopDefault(require('jsonpath'));
+var jmespath = _interopDefault(require('jmespath'));
 var nodeHtmlParser = require('node-html-parser');
 var qs = require('qs');
 
@@ -21,13 +21,13 @@ function isObject(value) {
  * @param callback 处理每个元素的回调函数
  * @param path 当前元素的位置
  */
-function deepEach(target, callback = (value) => value, path = "$") {
+function deepEach(target, callback = (value) => value, path = "") {
     let _target = null;
     if (isObject(target)) {
         const keys = Object.keys(target);
         _target = {};
         keys.forEach(key => {
-            _target[key] = deepEach(target[key], callback, path + "." + key);
+            _target[key] = deepEach(target[key], callback, path.length === 0 ? key : path + "." + key);
         });
     }
     else if (isArray(target)) {
@@ -128,63 +128,63 @@ class Directive {
      * @param key JSON查询字符串
      */
     ['v-refer'](refer, key) {
-        return jp.query(refer, key);
+        return jmespath.search(refer, key);
     }
     /**
      * 根据key返回状态的值
      * @param key JSON查询字符串
      */
     ['v-state'](refer, key) {
-        return jp.query(refer.state, key);
+        return jmespath.search(refer.state, key);
     }
     /**
      * 根据key返回状态的值
      * @param key JSON查询字符串
      */
     ['v-meta'](refer, key) {
-        return jp.query(refer.meta, key);
+        return jmespath.search(refer.meta, key);
     }
     /**
      * 查询上一个step的对象
      * @param key JSON查询字符串
      */
     ['v-prev'](refer, key) {
-        return jp.query(refer.steps[refer.state.current - 1], key);
+        return jmespath.search(refer.steps[refer.state.current - 1], key);
     }
     /**
      * 查询上一个step的对象的mergeResults
      * @param key JSON查询字符串
      */
     ['v-prev-mres'](refer, key) {
-        return jp.query(refer.steps[refer.state.current - 1].mergeResults, key);
+        return jmespath.search(refer.steps[refer.state.current - 1].mergeResults, key);
     }
     /**
      * 查询上一个step的对象的results
      * @param key JSON查询字符串
      */
     ['v-prev-res'](refer, key) {
-        return jp.query(refer.steps[refer.state.current - 1].results, key);
+        return jmespath.search(refer.steps[refer.state.current - 1].results, key);
     }
     /**
      * 查询上一个step的对象的response
      * @param key JSON查询字符串
      */
     ['v-prev-responses'](refer, key) {
-        return jp.query(refer.steps[refer.state.current - 1].responses, key);
+        return jmespath.search(refer.steps[refer.state.current - 1].responses, key);
     }
     /**
      * 查询当前step的对象
      * @param key JSON查询字符串
      */
     ['v-current'](refer, key) {
-        return jp.query(refer.steps[refer.state.current], key);
+        return jmespath.search(refer.steps[refer.state.current], key);
     }
     /**
      * 获取当前的response
      * @param key JSON查询字符串
      */
     ['v-response'](refer, key) {
-        return jp.query(refer.response, key);
+        return jmespath.search(refer.response, key);
     }
     /**
      * 获取当前的response
@@ -194,7 +194,7 @@ class Directive {
         const [htmlSelector, jsonSelector] = key.split('|');
         const dom = nodeHtmlParser.parse(refer.response.data);
         const result = dom.querySelectorAll(htmlSelector);
-        return jp.query(result, jsonSelector);
+        return jmespath.search(result, jsonSelector);
     }
 }
 
@@ -265,6 +265,8 @@ class Step {
     EventList["GO_AFTER"] = "go:after";
     EventList["END"] = "end";
     EventList["ERR"] = "err";
+    EventList["REQUEST"] = "request";
+    EventList["RESPONSE"] = "response";
 })(exports.EventList || (exports.EventList = {}));
 class Event {
     constructor() {
@@ -343,6 +345,7 @@ class HttpCrawler {
                 try {
                     currentStep.state.startTime = new Date();
                     currentStep.responses[i] = await this.request(req);
+                    this.event.emit(exports.EventList.RESPONSE, currentStep.responses[i]);
                     currentStep.state.endTime = new Date();
                     isRetry = false;
                 }
@@ -403,6 +406,7 @@ class HttpCrawler {
         else if (req.method === exports.MethodType.POST && req.dataType === exports.DataType.JSON) {
             config.headers['Content-Type'] = 'application/json';
         }
+        this.event.emit(exports.EventList.REQUEST, config);
         return HttpCrawler.http(config);
     }
     /**
@@ -416,35 +420,44 @@ class HttpCrawler {
         if (transformValue._v.length === 0) {
             return [transformValue];
         }
-        const result = [];
-        const t = transformValue;
-        while (t._v.length > 0) {
-            const _t = deepEach(t);
-            for (let i = 0; i < t._v.length; i++) {
-                const cur = t._v[i];
-                jp.apply(_t, cur, (value) => {
-                    if (!isArray(value)) {
-                        return value;
+        return this.splitFullToArray(transformValue);
+    }
+    splitFullToArray(obj) {
+        const _v = obj._v;
+        const retArr = [];
+        let maxLen = 1;
+        for (let i = 0; i < maxLen; i++) {
+            const _obj = deepEach(obj);
+            _v.forEach((path) => {
+                const arr = jmespath.search(obj, path);
+                let fastEl = "";
+                if (isArray(arr)) {
+                    maxLen = (arr.length > maxLen) ? arr.length : maxLen;
+                    if (arr.length <= 1) {
+                        fastEl = arr[0];
                     }
-                    return value[0];
-                });
-                jp.apply(t, cur, (value) => {
-                    if (!isArray(value)) {
-                        t._v.splice(i, 1);
-                        return value;
+                    else {
+                        fastEl = arr.shift();
                     }
-                    if (value.length <= 1) {
-                        t._v.splice(i, 1);
-                        i--;
-                        return value[0];
+                }
+                if (fastEl) {
+                    const lastKeyIndex = path.lastIndexOf('.');
+                    const lastKey = path.substring(lastKeyIndex + 1);
+                    const otherPath = path.substring(0, lastKeyIndex);
+                    // 这里只找父元素为对象的key，不找父元素为数组的情况
+                    if (otherPath.length === 0) {
+                        _obj[lastKey] = fastEl;
                     }
-                    value.shift();
-                    return value;
-                });
-            }
-            result.push(_t);
+                    else {
+                        const target = jmespath.search(_obj, otherPath);
+                        target[lastKey] = fastEl;
+                    }
+                }
+            });
+            delete _obj._v;
+            retArr.push(_obj);
         }
-        return result;
+        return retArr;
     }
     /**
      * 合并所有步的结果

@@ -56,7 +56,7 @@ const okzyw = new HttpCrawler(
         method: 'post', //请求方式
         dataType:'formdata', //data的数据类型，可选json与formdata
         data: {
-          wd: '{{v-meta=$.search}}', //{{v-meta=$.search}} 调用v-meta指令并且返回$.search查询mete对象里的值
+          wd: '{{v-meta=search}}', //{{v-meta=search}} 调用v-meta指令并且返回search查询mete对象里的值
           submit: 'search'
         },
         resultModel: { // 返回的数据模型
@@ -97,15 +97,15 @@ main();
 
 指令是相当与是一个函数，通过`{{v-meta=JSONSelector}}`的方式调用，这里使用的是v-meta这个指令，参数JSONSelector是一个JSON查询的表达式，通过JSONSelector来获取meta对象里的值，在http-crawler里还有很多的指令来进行不同的操作，你也可以自定义指令来扩充指令集，注意指令只能在
 
-`$.steps[*].url`
+`steps[*].url`
 
-`$.steps[*].params`
+`steps[*].params`
 
-`$.steps[*].data`
+`steps[*].data`
 
-`$.steps[*].header`
+`steps[*].header`
 
-`$.steps[*].resultModel`
+`steps[*].resultModel`
 
 里使用
 
@@ -146,7 +146,7 @@ const config = {
                 m:'vod-search'
             },
             data: { // post传值
-              wd: '{{v-meta=$.search}}', //{{v-meta=$.search}} 调用v-meta指令并且返回$.search查询mete对象里的值
+              wd: '{{v-meta=search}}', //{{v-meta=search}} 调用v-meta指令并且返回search查询mete对象里的值
               submit: 'search'
             },
             resultModel: { // 返回的数据模型
@@ -170,7 +170,7 @@ const config = {
 
 例子：
 
-"{{v-meta=$.version}}"
+"{{v-meta=version}}"
 
 ### v-prev
 
@@ -295,6 +295,14 @@ okzyw.on('go:after',({state})=>{
   console.log('完成第'+(state.current)+'步');
 })
 
+okzyw.on('request',(req)=>{
+  console.log(req);
+})
+
+okzyw.on('response',(res)=>{
+  console.log(res);
+})
+
 ```
 
 上面是所有的事件。
@@ -303,7 +311,8 @@ okzyw.on('go:after',({state})=>{
 
 ### JSONSelector
 
-引擎中的很多指令都是使用开源的 [jsonpath](https://www.npmjs.com/package/jsonpath) ，来实现JSON查询，具体语法请查阅文档
+
+引擎中的json选择器使用的是[jmespath](https://www.npmjs.com/package/jmespath) ，来实现，具体语法请查阅文档,或者直接查看[jmes语法文档](https://jmespath.org/tutorial.html)
 
 ### CSSSelector
 

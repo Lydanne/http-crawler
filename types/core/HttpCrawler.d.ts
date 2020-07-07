@@ -38,6 +38,7 @@ export declare class HttpCrawler {
      * @param transformValue 使用transformValue方法处理后的对象
      */
     splitFull(transformValue: any): any[];
+    splitFullToArray(obj: any): any[];
     /**
      * 合并所有步的结果
      */

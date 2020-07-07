@@ -12,13 +12,13 @@ export function isObject(value:any):boolean{
  * @param callback 处理每个元素的回调函数
  * @param path 当前元素的位置
  */
-export function deepEach(target:any, callback:(value:any,path?:string)=>any=(value)=>value, path:string = "$"){
+export function deepEach(target:any, callback:(value:any,path?:string)=>any=(value)=>value, path:string = ""){
   let _target:any = null;
   if (isObject(target)) {
     const keys = Object.keys(target);
     _target = {};
     keys.forEach(key => {
-      _target[key] = deepEach(target[key], callback, path+"."+key);
+      _target[key] = deepEach(target[key], callback, path.length===0 ? key : path+"."+key);
     });
   } else if (isArray(target)) {
     _target = [];
