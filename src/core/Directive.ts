@@ -128,18 +128,18 @@ export class Directive {
   }
 
   /**
-   * 查询上一个step的对象的mergeResults
+   * 查询上一个step的对象的rawResults
    * @param key JSON查询字符串
    */
-  ['v-prev-mres'] (refer: any, key: string): any {
-    return jmespath.search(refer.steps[refer.state.current-1].mergeResults, key);
+  ['v-prev-resu-raw'] (refer: any, key: string): any {
+    return jmespath.search(refer.steps[refer.state.current-1].rawResults, key);
   }
 
   /**
    * 查询上一个step的对象的results
    * @param key JSON查询字符串
    */
-  ['v-prev-res'] (refer: any, key: string): any {
+  ['v-prev-resu'] (refer: any, key: string): any {
     return jmespath.search(refer.steps[refer.state.current-1].results, key);
   }
 
@@ -147,7 +147,7 @@ export class Directive {
    * 查询上一个step的对象的response
    * @param key JSON查询字符串
    */
-  ['v-prev-responses'] (refer: any, key: string): any {
+  ['v-prev-resp'] (refer: any, key: string): any {
     return jmespath.search(refer.steps[refer.state.current-1].responses, key);
   }
 
@@ -155,7 +155,7 @@ export class Directive {
    * 查询当前step的对象
    * @param key JSON查询字符串
    */
-  ['v-current'] (refer:any,key: string): any {
+  ['v-curr'] (refer:any,key: string): any {
     return jmespath.search(refer.steps[refer.state.current], key);
   }
 
@@ -163,7 +163,7 @@ export class Directive {
    * 获取当前的response
    * @param key JSON查询字符串
    */
-  ['v-response'] (refer:any,key: string): any {
+  ['v-resp'] (refer:any,key: string): any {
     return jmespath.search(refer.response, key);
   }
 
@@ -171,7 +171,7 @@ export class Directive {
    * 获取当前的response
    * @param key JSON查询字符串
    */
-  ['v-response-html'] (refer:any,key: string): any {
+  ['v-resp-html'] (refer:any,key: string): any {
 
     const [htmlSelector,jsonSelector] = key.split('|');
     const dom = parse(refer.response.data);

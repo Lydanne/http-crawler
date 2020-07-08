@@ -20,8 +20,8 @@ const clicli = new HttpCrawler(
         },
         resultModel: {
           home: '{{v-meta=home}}',
-          id: '{{v-response=data.posts[*].id}}',
-          title: '{{v-response=data.posts[*].title}}',
+          id: '{{v-resp=data.posts[*].id}}',
+          title: '{{v-resp=data.posts[*].title}}',
         },
       },
       {
@@ -29,14 +29,14 @@ const clicli = new HttpCrawler(
         url: 'http://api.clicli.us/videos',
         method: 'get',
         params: {
-          pid: '{{v-prev-mres=[*].id}}',
+          pid: '{{v-prev-resu=[*].id}}',
           page: '1',
           pageSize: '150'
         },
         isMergeResult: false,
         resultModel: {
-          name: '第{{v-response=data.videos[*].oid}}集 {{v-response=data.videos[*].title}}',
-          url: '{{v-response=data.videos[*].content}}'
+          name: '第{{v-resp=data.videos[*].oid}}集 {{v-resp=data.videos[*].title}}',
+          url: '{{v-resp=data.videos[*].content}}'
         },
       }
     ]
@@ -64,18 +64,18 @@ const okzyw = new HttpCrawler(
           submit: 'search'
         },
         resultModel: {
-          title: '{{v-response-html=.xing_vb4|[*].structuredText}}',
-          router: '{{v-response-html=.xing_vb4|[*].firstChild.attributes.href}}',
+          title: '{{v-resp-html=.xing_vb4|[*].structuredText}}',
+          router: '{{v-resp-html=.xing_vb4|[*].firstChild.attributes.href}}',
         },
       },
       {
         key:'voides',
-        url: 'http://okzyw.com{{v-prev-mres=[*].router}}',
+        url: 'http://okzyw.com{{v-prev-resu=[*].router}}',
         method: 'get',
         isMergeResult:false,
         resultModel: {
-          title: '{{v-response-html=[name=copy_sel]|[*].parentNode.structuredText}}',
-          voideUrl: '{{v-response-html=[name=copy_sel]|[*].attributes.value}}',
+          title: '{{v-resp-html=[name=copy_sel]|[*].parentNode.structuredText}}',
+          voideUrl: '{{v-resp-html=[name=copy_sel]|[*].attributes.value}}',
         },
       }
     ]
@@ -110,7 +110,7 @@ clicli.on('response',(res)=>{
 })
 
 async function main(params) {
-  const res1 = await clicli.run({ search:"斗罗大陆" });
+  const res1 = await clicli.run({ search:"超电磁炮" });
   console.log(res1);
 }
 

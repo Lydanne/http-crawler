@@ -38,11 +38,13 @@ export class HttpCrawler {
    */
   async run (meta?: Meta) {
     Object.assign(this.meta, meta);
+    this.event.emit(EventList.START, this);
     for (let i = this.state.current; i < this.steps.length; i++) {
       await this.go();
     }
-
-    return this.mergeResult();
+    const finalResults = this.mergeResult();
+    this.event.emit(EventList.END, finalResults, this);
+    return finalResults;
   }
 
   /**
@@ -58,13 +60,10 @@ export class HttpCrawler {
      * 4、发送所有的requests对象，并且将结果放到responses
      * 5、通过resultMode处理responses里的对象，并且存放到results里
      */
-    if (this.state.current === 0) {
-      // 当为第一步是触发EventList.START事件
-      this.event.emit(EventList.START, this);
-    }
-    this.event.emit(EventList.GO_BEFORE, this);
-
+    
     const currentStep = this.$step;
+
+    this.event.emit(EventList.GO_BEFORE,currentStep, this);
 
     const untreatedRequest: any = { //将要请求的对象
       method: currentStep.method,
@@ -87,13 +86,13 @@ export class HttpCrawler {
         try {
           currentStep.state.startTime = new Date();
           currentStep.responses[i] = await this.request(req);
-          this.event.emit(EventList.RESPONSE, currentStep.responses[i]);
+          this.event.emit(EventList.RESPONSE, currentStep.responses[i], this);
           currentStep.state.endTime = new Date();
           isRetry = false;
         } catch (error) {
           errRetry--;
           isRetry = true;
-          this.event.emit(EventList.ERR, error, this);
+          this.event.emit(EventList.REQUEST_ERR, error, this);
         }
       } while (isRetry && errRetry >= 0);
       await sleep(this.option.delay);
@@ -102,26 +101,13 @@ export class HttpCrawler {
     for (let i = 0; i < currentStep.responses.length; i++) {
       // 将所有结果挨个处理
       const response = currentStep.responses[i];
-      currentStep.results[i] = this.splitFull(this.directive.deepTransform(currentStep.resultModel, { ...this, response }));
+      currentStep.rawResults[i] = this.splitFull(this.directive.deepTransform(currentStep.resultModel, { ...this, response }));
     }
-
-    this.event.emit(EventList.GO_AFTER, this);
-
-    this.state.current++;
-    this.state.endTime = new Date();
-    this.directive._v = [];
-    if ((this.state.current) < this.steps.length) {
-      this.steps[this.state.current].prevStep = currentStep;
-    }
-
-
-    if (this.state.current === this.steps.length) {
-      this.event.emit(EventList.END, this);
-    }
+    currentStep.results = currentStep.rawResults;
 
     if (currentStep.isMergeResult) {
       //开始和处理后的结果
-      currentStep.mergeResults = currentStep.results.reduce((prev: any, curr) => {
+      currentStep.results = currentStep.rawResults.reduce((prev: any, curr) => {
         if (isArray(curr)) {
           prev.push(...curr);
         } else {
@@ -129,9 +115,17 @@ export class HttpCrawler {
         }
         return prev;
       }, []);
-      return currentStep.mergeResults;
     }
 
+    
+    this.state.current++;
+    this.state.endTime = new Date();
+    this.directive._v = [];
+    if ((this.state.current) < this.steps.length) {
+      currentStep.prevStep = currentStep;
+    }
+    
+    this.event.emit(EventList.GO_AFTER,currentStep ,this);
     return currentStep.results;
   }
 
@@ -153,7 +147,7 @@ export class HttpCrawler {
     } else if (req.method === MethodType.POST && req.dataType === DataType.JSON) {
       config.headers['Content-Type'] = 'application/json';
     }
-    this.event.emit(EventList.REQUEST,config);
+    this.event.emit(EventList.REQUEST, config, this);
     return HttpCrawler.http(config);
   }
 
@@ -170,17 +164,17 @@ export class HttpCrawler {
     }
     return this.splitFullToArray(transformValue);
   }
-  splitFullToArray (obj:any) {
+  splitFullToArray (obj: any) {
     const _v = obj._v;
     const retArr = [];
     let maxLen = 1;
     for (let i = 0; i < maxLen; i++) {
       const _obj = deepEach(obj);
-      _v.forEach((path:any) => {
+      _v.forEach((path: any) => {
 
         const arr = jmespath.search(obj, path);
         let fastEl = "";
-        if(isArray(arr)){
+        if (isArray(arr)) {
           maxLen = (arr.length > maxLen) ? arr.length : maxLen;
           if (arr.length <= 1) {
             fastEl = arr[0];
@@ -188,7 +182,7 @@ export class HttpCrawler {
             fastEl = arr.shift();
           }
         }
-        if (fastEl){
+        if (fastEl) {
           const lastKeyIndex = path.lastIndexOf('.');
           const lastKey = path.substring(lastKeyIndex + 1);
           const otherPath = path.substring(0, lastKeyIndex);
@@ -211,12 +205,12 @@ export class HttpCrawler {
    */
   mergeResult () {
     const group = [];
-    const fastResultSize = this.steps[0].mergeResults.length || this.steps[0].results.length;
+    const fastResultSize = this.steps[0].results.length;
     for (let i = 0; i < fastResultSize; i++) {
       let obj: any = {};
       for (let j = 0; j < this.steps.length; j++) {
         const step = this.steps[j]
-        const results = deepEach(step.mergeResults.length ? step.mergeResults : step.results);
+        const results = deepEach(step.results);
         const result = results[i];
         if (isObject(result)) {
           if (step.key === 'default') {
@@ -238,7 +232,7 @@ export class HttpCrawler {
   reset () {
     this.state.current = 0;
     this.steps.map(step => {
-      step.mergeResults = [];
+      step.rawResults = [];
       step.responses = [];
       step.results = [];
     });

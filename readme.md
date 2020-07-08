@@ -21,15 +21,25 @@
 ## 特点
 
 - 配置方式爬虫
-- 支持浏览器环境
+- 纯JS实现
 - 支持自定义指令
-- 支持TS
+- 使用TS开发
 
 ## 安装
 
 ```cmd
 npm i http-crawler
 ```
+
+## 使用之前
+
+你需要会下面的知识：
+
+- jmespath 语法
+
+- css 选择器
+
+- axios 的响应对象格式
 
 ## 使用
 
@@ -60,17 +70,17 @@ const okzyw = new HttpCrawler(
           submit: 'search'
         },
         resultModel: { // 返回的数据模型
-          title: '{{v-response-html=.xing_vb4|$[*].structuredText}}',
-          router: '{{v-response-html=.xing_vb4|$[*].firstChild.attributes.href}}',
+          title: '{{v-resp-html=.xing_vb4|[*].structuredText}}',
+          router: '{{v-resp-html=.xing_vb4|[*].firstChild.attributes.href}}',
         },
       },
       {
-        url: 'http://okzyw.com{{v-prev-mres=$[*].router}}',
+        url: 'http://okzyw.com{{v-prev-resu=[*].router}}',
         method: 'get',
         isMergeResult:false, //不用将结果合并
         resultModel: {
-          title: '{{v-response-html=[name=copy_sel]|$[*].parentNode.structuredText}}',
-          voideUrl: '{{v-response-html=[name=copy_sel]|$[*].attributes.value}}',
+          title: '{{v-resp-html=[name=copy_sel]|[*].parentNode.structuredText}}',
+          voideUrl: '{{v-resp-html=[name=copy_sel]|[*].attributes.value}}',
         },
       }
     ]
@@ -87,7 +97,7 @@ main();
 
 ## 核心思想
 
-![核心原理](./doc/原理.png)
+[![UEJPL8.png](https://s1.ax1x.com/2020/07/08/UEJPL8.png)](https://imgchr.com/i/UEJPL8)
 
 ### 步Step
 
@@ -150,8 +160,8 @@ const config = {
               submit: 'search'
             },
             resultModel: { // 返回的数据模型
-              title: '{{v-response-html=.xing_vb4|$[*].structuredText}}',
-              router: '{{v-response-html=.xing_vb4|$[*].firstChild.attributes.href}}',
+              title: '{{v-resp-html=.xing_vb4|[*].structuredText}}',
+              router: '{{v-resp-html=.xing_vb4|[*].firstChild.attributes.href}}',
             },
         }
     ]
@@ -180,17 +190,17 @@ const config = {
 
 返回值：查询结果
 
-### v-prev-mres
+### v-prev-resu
 
-查询上一步的mergeResults对象，这个与resultModel的结构一致
+查询上一步的results对象，这个与resultModel的结构一致
 
 参数：JSONSelector
 
 返回值：查询结果
 
-### v-prev-res
+### v-prev-resu-raw
 
-查询上一步的results对象
+查询上一步的rawResults对象
 
 参数：JSONSelector
 
@@ -212,7 +222,7 @@ const config = {
 
 返回值：查询结果
 
-### v-current
+### v-curr
 
 查询当前步对象
 
@@ -220,7 +230,7 @@ const config = {
 
 返回值：查询结果
 
-### v-response
+### v-resp
 
 查询当前的响应结果，注意响应结果必须为json
 
@@ -228,17 +238,17 @@ const config = {
 
 返回值：查询结果
 
-### v-response-html
+### v-resp-html
 
 查询当前响应，注意响应结果必须为html字符串
 
-参数：CSSSelector|JSONSelector
+参数：<CSSSelector>|<JSONSelector>
 
 返回值：查询结果
 
 例子：
 
-"{{v-response-html=.xing_vb4|$[*].structuredText}}"
+"{{v-resp-html=.xing_vb4|[*].structuredText}}"
 
 ## 方法
 
@@ -262,7 +272,7 @@ const config = {
 
 返回值：object[]
 
-合并所有的结果，这一步已经在run中执行
+合并所有的结果，如果使用的run命令则不需要进行合并
 
 ### .reset()
 
@@ -275,31 +285,44 @@ const config = {
 例子：
 
 ```js
-okzyw.on('start',()=>{
+okzyw.on('start',(that)=>{
+  // that 当前实例
   console.log('开始');
 })
 
-okzyw.on('end',()=>{
+okzyw.on('end',(finalResults, that)=>{
+  // finalResults 最终的结果
+  // that 当前实例
   console.log('结束');
 })
 
-okzyw.on('err',(error)=>{
+okzyw.on('request:err',(error, that)=>{
+  // error 错误原因
+  // that 当前实例
   console.log(error);
 })
 
-okzyw.on('go:before',({ state })=>{
-  console.log('开始第'+(state.current)+'步');
+okzyw.on('go:before',(currentStep, that)=>{
+  // currentStep 当前步
+  // that 当前实例
+  console.log('开始第'+(that.state.current)+'步');
 })
 
-okzyw.on('go:after',({state})=>{
-  console.log('完成第'+(state.current)+'步');
+okzyw.on('go:after',(currentStep, that)=>{
+  // currentStep 当前步
+  // that 当前实例
+  console.log('完成第'+(that.state.current)+'步');
 })
 
-okzyw.on('request',(req)=>{
+okzyw.on('request',(req, that)=>{
+  // req 当前请求参数
+  // that 当前实例
   console.log(req);
 })
 
-okzyw.on('response',(res)=>{
+okzyw.on('response',(res, that)=>{
+  // res 当前响应对象
+  // that 当前实例
   console.log(res);
 })
 
@@ -316,5 +339,5 @@ okzyw.on('response',(res)=>{
 
 ### CSSSelector
 
-引擎中v-response-html中dom查询使用的是 [node-html-parser](https://www.npmjs.com/package/node-html-parser) 开源包，可以直接使用css选择器，但是在查询结果上会有一些差异，具体查看相关文档。
+引擎中v-resp-html中dom查询使用的是 [node-html-parser](https://www.npmjs.com/package/node-html-parser) 开源包，可以直接使用css选择器，但是在查询结果上会有一些差异，具体查看相关文档。
 

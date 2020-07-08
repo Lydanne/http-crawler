@@ -31,8 +31,8 @@ export class Step {
   resultModel: any = {}; // 结果模型
   requests:Request[] = []; // 请求集合
   responses: AxiosResponse[] = []; //相应集合
-  results: any[][] = []; // 源结果
-  mergeResults:any[] = []; //合并后的结果
+  results: any[][] = []; // 最终结果
+  rawResults:any[] = []; //原始结果
   isMergeResult: boolean = true; // 是否合并结果
   prevStep: Step | null = null; //上一步
   constructor(init: Step) {

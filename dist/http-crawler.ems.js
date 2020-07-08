@@ -146,45 +146,45 @@ class Directive {
         return jmespath.search(refer.steps[refer.state.current - 1], key);
     }
     /**
-     * 查询上一个step的对象的mergeResults
+     * 查询上一个step的对象的rawResults
      * @param key JSON查询字符串
      */
-    ['v-prev-mres'](refer, key) {
-        return jmespath.search(refer.steps[refer.state.current - 1].mergeResults, key);
+    ['v-prev-resu-raw'](refer, key) {
+        return jmespath.search(refer.steps[refer.state.current - 1].rawResults, key);
     }
     /**
      * 查询上一个step的对象的results
      * @param key JSON查询字符串
      */
-    ['v-prev-res'](refer, key) {
+    ['v-prev-resu'](refer, key) {
         return jmespath.search(refer.steps[refer.state.current - 1].results, key);
     }
     /**
      * 查询上一个step的对象的response
      * @param key JSON查询字符串
      */
-    ['v-prev-responses'](refer, key) {
+    ['v-prev-resp'](refer, key) {
         return jmespath.search(refer.steps[refer.state.current - 1].responses, key);
     }
     /**
      * 查询当前step的对象
      * @param key JSON查询字符串
      */
-    ['v-current'](refer, key) {
+    ['v-curr'](refer, key) {
         return jmespath.search(refer.steps[refer.state.current], key);
     }
     /**
      * 获取当前的response
      * @param key JSON查询字符串
      */
-    ['v-response'](refer, key) {
+    ['v-resp'](refer, key) {
         return jmespath.search(refer.response, key);
     }
     /**
      * 获取当前的response
      * @param key JSON查询字符串
      */
-    ['v-response-html'](refer, key) {
+    ['v-resp-html'](refer, key) {
         const [htmlSelector, jsonSelector] = key.split('|');
         const dom = parse(refer.response.data);
         const result = dom.querySelectorAll(htmlSelector);
@@ -240,8 +240,8 @@ class Step {
         this.resultModel = {}; // 结果模型
         this.requests = []; // 请求集合
         this.responses = []; //相应集合
-        this.results = []; // 源结果
-        this.mergeResults = []; //合并后的结果
+        this.results = []; // 最终结果
+        this.rawResults = []; //原始结果
         this.isMergeResult = true; // 是否合并结果
         this.prevStep = null; //上一步
         Object.assign(this, init);
@@ -261,7 +261,7 @@ var EventList;
     EventList["GO_BEFORE"] = "go:before";
     EventList["GO_AFTER"] = "go:after";
     EventList["END"] = "end";
-    EventList["ERR"] = "err";
+    EventList["REQUEST_ERR"] = "request:err";
     EventList["REQUEST"] = "request";
     EventList["RESPONSE"] = "response";
 })(EventList || (EventList = {}));
@@ -299,10 +299,13 @@ class HttpCrawler {
      */
     async run(meta) {
         Object.assign(this.meta, meta);
+        this.event.emit(EventList.START, this);
         for (let i = this.state.current; i < this.steps.length; i++) {
             await this.go();
         }
-        return this.mergeResult();
+        const finalResults = this.mergeResult();
+        this.event.emit(EventList.END, finalResults, this);
+        return finalResults;
     }
     /**
      * 走一步
@@ -317,12 +320,8 @@ class HttpCrawler {
          * 4、发送所有的requests对象，并且将结果放到responses
          * 5、通过resultMode处理responses里的对象，并且存放到results里
          */
-        if (this.state.current === 0) {
-            // 当为第一步是触发EventList.START事件
-            this.event.emit(EventList.START, this);
-        }
-        this.event.emit(EventList.GO_BEFORE, this);
         const currentStep = this.$step;
+        this.event.emit(EventList.GO_BEFORE, currentStep, this);
         const untreatedRequest = {
             method: currentStep.method,
             dataType: currentStep.dataType
@@ -342,14 +341,14 @@ class HttpCrawler {
                 try {
                     currentStep.state.startTime = new Date();
                     currentStep.responses[i] = await this.request(req);
-                    this.event.emit(EventList.RESPONSE, currentStep.responses[i]);
+                    this.event.emit(EventList.RESPONSE, currentStep.responses[i], this);
                     currentStep.state.endTime = new Date();
                     isRetry = false;
                 }
                 catch (error) {
                     errRetry--;
                     isRetry = true;
-                    this.event.emit(EventList.ERR, error, this);
+                    this.event.emit(EventList.REQUEST_ERR, error, this);
                 }
             } while (isRetry && errRetry >= 0);
             await sleep(this.option.delay);
@@ -357,21 +356,12 @@ class HttpCrawler {
         for (let i = 0; i < currentStep.responses.length; i++) {
             // 将所有结果挨个处理
             const response = currentStep.responses[i];
-            currentStep.results[i] = this.splitFull(this.directive.deepTransform(currentStep.resultModel, { ...this, response }));
+            currentStep.rawResults[i] = this.splitFull(this.directive.deepTransform(currentStep.resultModel, { ...this, response }));
         }
-        this.event.emit(EventList.GO_AFTER, this);
-        this.state.current++;
-        this.state.endTime = new Date();
-        this.directive._v = [];
-        if ((this.state.current) < this.steps.length) {
-            this.steps[this.state.current].prevStep = currentStep;
-        }
-        if (this.state.current === this.steps.length) {
-            this.event.emit(EventList.END, this);
-        }
+        currentStep.results = currentStep.rawResults;
         if (currentStep.isMergeResult) {
             //开始和处理后的结果
-            currentStep.mergeResults = currentStep.results.reduce((prev, curr) => {
+            currentStep.results = currentStep.rawResults.reduce((prev, curr) => {
                 if (isArray(curr)) {
                     prev.push(...curr);
                 }
@@ -380,8 +370,14 @@ class HttpCrawler {
                 }
                 return prev;
             }, []);
-            return currentStep.mergeResults;
         }
+        this.state.current++;
+        this.state.endTime = new Date();
+        this.directive._v = [];
+        if ((this.state.current) < this.steps.length) {
+            currentStep.prevStep = currentStep;
+        }
+        this.event.emit(EventList.GO_AFTER, currentStep, this);
         return currentStep.results;
     }
     /**
@@ -403,7 +399,7 @@ class HttpCrawler {
         else if (req.method === MethodType.POST && req.dataType === DataType.JSON) {
             config.headers['Content-Type'] = 'application/json';
         }
-        this.event.emit(EventList.REQUEST, config);
+        this.event.emit(EventList.REQUEST, config, this);
         return HttpCrawler.http(config);
     }
     /**
@@ -461,12 +457,12 @@ class HttpCrawler {
      */
     mergeResult() {
         const group = [];
-        const fastResultSize = this.steps[0].mergeResults.length || this.steps[0].results.length;
+        const fastResultSize = this.steps[0].results.length;
         for (let i = 0; i < fastResultSize; i++) {
             let obj = {};
             for (let j = 0; j < this.steps.length; j++) {
                 const step = this.steps[j];
-                const results = deepEach(step.mergeResults.length ? step.mergeResults : step.results);
+                const results = deepEach(step.results);
                 const result = results[i];
                 if (isObject(result)) {
                     if (step.key === 'default') {
@@ -490,7 +486,7 @@ class HttpCrawler {
     reset() {
         this.state.current = 0;
         this.steps.map(step => {
-            step.mergeResults = [];
+            step.rawResults = [];
             step.responses = [];
             step.results = [];
         });

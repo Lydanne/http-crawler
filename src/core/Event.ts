@@ -3,7 +3,7 @@ export enum EventList{
   GO_BEFORE = 'go:before', // 运行go之前
   GO_AFTER = 'go:after', // 运行go之后
   END = 'end', //结束
-  ERR = 'err', //出现错误
+  REQUEST_ERR = 'request:err', //出现错误
   REQUEST = 'request',
   RESPONSE = 'response'
 }

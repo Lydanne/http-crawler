@@ -1,6 +1,6 @@
 {
   "name": "http-crawler",
-  "version": "0.1.4",
+  "version": "1.0.0",
   "description": "one http crawler engine",
   "main": "dist/http-crawler.cjs.js",
   "module": "dist/http-crawler.ems.js",
@@ -20,7 +20,11 @@
     "jsdom"
   ],
   "author": "WumaCoder 1829913225@qq.com",
-  "license": "ISC",
+  "license": "Apache",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WumaCoder/http-crawler.git"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^13.0.0",
     "@rollup/plugin-node-resolve": "^8.1.0",
@@ -29,6 +33,7 @@
     "@types/jest": "^26.0.0",
     "@types/node": "^14.0.14",
     "@types/qs": "^6.9.3",
+    "@types/jmespath": "^0.15.0",
     "jest": "^26.0.1",
     "rollup": "^2.18.0",
     "rollup-plugin-sourcemaps": "^0.6.2",
@@ -39,7 +44,6 @@
     "typescript": "^3.9.5"
   },
   "dependencies": {
-    "@types/jmespath": "^0.15.0",
     "axios": "^0.19.2",
     "jmespath": "^0.15.0",
     "node-html-parser": "^1.2.20",
