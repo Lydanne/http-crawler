@@ -1,6 +1,6 @@
 {
   "name": "http-crawler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "one http crawler engine",
   "main": "dist/http-crawler.cjs.js",
   "module": "dist/http-crawler.ems.js",
