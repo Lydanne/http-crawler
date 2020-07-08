@@ -101,7 +101,8 @@ export class HttpCrawler {
     for (let i = 0; i < currentStep.responses.length; i++) {
       // 将所有结果挨个处理
       const response = currentStep.responses[i];
-      currentStep.rawResults[i] = this.splitFull(this.directive.deepTransform(currentStep.resultModel, { ...this, response }));
+      const deepTransformValues = this.directive.deepTransform(currentStep.resultModel, { ...this, response });
+      currentStep.rawResults[i] = this.splitFull(deepTransformValues);
     }
     currentStep.results = currentStep.rawResults;
 
@@ -120,7 +121,6 @@ export class HttpCrawler {
     
     this.state.current++;
     this.state.endTime = new Date();
-    this.directive._v = [];
     if ((this.state.current) < this.steps.length) {
       currentStep.prevStep = currentStep;
     }
@@ -165,6 +165,8 @@ export class HttpCrawler {
     return this.splitFullToArray(transformValue);
   }
   splitFullToArray (obj: any) {
+    // console.log(obj);
+    
     const _v = obj._v;
     const retArr = [];
     let maxLen = 1;

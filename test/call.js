@@ -110,7 +110,7 @@ clicli.on('response',(res)=>{
 })
 
 async function main(params) {
-  const res1 = await clicli.run({ search:"超电磁炮" });
+  const res1 = await okzyw.run({ search:"超电磁炮" });
   console.log(res1);
 }
 

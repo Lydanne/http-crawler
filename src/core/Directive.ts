@@ -12,20 +12,22 @@ interface FunctionHanler {
  * 指令格式：{{v-<指令名>[=<参数>]}}
  */
 export class Directive {
-  _v: string[] = [];
   refer?:HttpCrawler | undefined;
   constructor(init?: Directive) {
     Object.assign(this, init);
   }
 
   deepTransform (target: any, refer: any = this.refer): any {
+    const _v: string[] = [];
     const _target = deepEach(target, (value, path) => {
+      
       if (value.search(/\{\{.*\[\*\].*\}\}/gm) !== -1) {
-        this._v.push(path as string);
+        // console.log(value, path);
+        _v.push(path as string);
       }
       return this.transform(value, refer);
     });
-    _target['_v'] = this._v;
+    _target['_v'] = _v;
     return _target;
   }
   /**

@@ -45,17 +45,18 @@ function sleep(interval = 100) {
  */
 class Directive {
     constructor(init) {
-        this._v = [];
         Object.assign(this, init);
     }
     deepTransform(target, refer = this.refer) {
+        const _v = [];
         const _target = deepEach(target, (value, path) => {
             if (value.search(/\{\{.*\[\*\].*\}\}/gm) !== -1) {
-                this._v.push(path);
+                // console.log(value, path);
+                _v.push(path);
             }
             return this.transform(value, refer);
         });
-        _target['_v'] = this._v;
+        _target['_v'] = _v;
         return _target;
     }
     /**
@@ -356,7 +357,8 @@ class HttpCrawler {
         for (let i = 0; i < currentStep.responses.length; i++) {
             // 将所有结果挨个处理
             const response = currentStep.responses[i];
-            currentStep.rawResults[i] = this.splitFull(this.directive.deepTransform(currentStep.resultModel, { ...this, response }));
+            const deepTransformValues = this.directive.deepTransform(currentStep.resultModel, { ...this, response });
+            currentStep.rawResults[i] = this.splitFull(deepTransformValues);
         }
         currentStep.results = currentStep.rawResults;
         if (currentStep.isMergeResult) {
@@ -373,7 +375,6 @@ class HttpCrawler {
         }
         this.state.current++;
         this.state.endTime = new Date();
-        this.directive._v = [];
         if ((this.state.current) < this.steps.length) {
             currentStep.prevStep = currentStep;
         }
@@ -416,6 +417,7 @@ class HttpCrawler {
         return this.splitFullToArray(transformValue);
     }
     splitFullToArray(obj) {
+        // console.log(obj);
         const _v = obj._v;
         const retArr = [];
         let maxLen = 1;
