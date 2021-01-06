@@ -44,7 +44,7 @@
     "typescript": "^3.9.5"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "jmespath": "^0.15.0",
     "node-html-parser": "^1.2.20",
     "qs": "^6.9.4"
